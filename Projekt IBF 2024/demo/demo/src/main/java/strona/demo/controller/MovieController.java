@@ -46,9 +46,9 @@ public class MovieController {
         return movieService.createMovie(movie);
     }
 
-    @PutMapping("/movies/{id}")
-    public Movie editMovie(@RequestBody Movie movie, long iddirector, long iduser){
-        return movieService.editMovie(movie, iddirector, iduser);
+    @PutMapping("/movies")
+    public Movie editMovie(@RequestBody Movie movie, long iddirector){
+        return movieService.editMovie(movie, iddirector);
     }
 
     @DeleteMapping("/movies/{idmovie}")

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import strona.demo.model.Director;
 import strona.demo.model.Movie;
+import strona.demo.model.Users;
 import strona.demo.repository.DirectorRepository;
 import strona.demo.repository.MovieRepository;
 import strona.demo.repository.UsersRepository;
@@ -38,15 +39,11 @@ public class MovieService {
         return movieRepository.save(movie);
     }
 
-    public Movie editMovie(Movie movie, long iddirector, long iduser) {
+    public Movie editMovie(Movie movie, long iddirector) {
         Director director = directorRepository.findById(iddirector)
                 .orElseThrow(() -> new RuntimeException("Director not found with id " + iddirector));
 
-//        movie.setDirector(director);
-//        User user = userRepository.findById(iduser)
-//                .orElseThrow(() -> new RuntimeException("Director not found with id " + iduser));
-//        movie.setUser(user);
-
+        movie.setDirector(director);
         return movieRepository.save(movie);
     }
 

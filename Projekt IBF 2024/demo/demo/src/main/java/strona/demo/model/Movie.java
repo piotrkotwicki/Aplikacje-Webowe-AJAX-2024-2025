@@ -23,20 +23,11 @@ public class Movie {
     private String title;
     private String genre;
     private Date premieredate;
-    private long iduser;
+//    private long iduser;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "iddirector", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Director director;
 
-    public List<String> getDirectorDetails() {
-        if (director != null) {
-            List<String> directorDetails = new ArrayList<>();
-            directorDetails.add(String.valueOf(director.getName()));
-            directorDetails.add(director.getSurname());
-            return directorDetails;
-        }
-        return null;
-    }
 }
