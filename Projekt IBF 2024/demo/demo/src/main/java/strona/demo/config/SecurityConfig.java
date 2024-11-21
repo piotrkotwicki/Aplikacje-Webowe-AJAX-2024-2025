@@ -19,7 +19,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import javax.sql.DataSource;
 
 @Configuration
-//@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final DataSource dataSource;

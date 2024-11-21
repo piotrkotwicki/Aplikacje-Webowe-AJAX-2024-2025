@@ -21,7 +21,6 @@ public class DirectorService {
 
     private static final int PAGE_ELEMENTS = 3;
     private final DirectorRepository  directorRepository;
-    private final UsersRepository userRepository;
 
     public Long countDirectors() {
         return directorRepository.count();
@@ -44,4 +43,7 @@ public class DirectorService {
         return directorRepository.save(director);
     }
 
+    public List<Director> getAllDirectors() {
+        return directorRepository.findAll();
+    }
 }

@@ -13,9 +13,6 @@ import java.util.List;
 
 public interface MovieRepository extends JpaRepository<Movie, Long> {
 
-    @Query("SELECT DISTINCT m FROM Movie m")
-    List<Movie> findAllMovies(PageRequest page);
-
     Movie deleteById(long idmovie);
 
     @Transactional

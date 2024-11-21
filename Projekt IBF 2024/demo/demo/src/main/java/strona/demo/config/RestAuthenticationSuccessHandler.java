@@ -42,7 +42,6 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
                 .sign(Algorithm.HMAC256(secret));
         response.setContentType("application/json");
 
-        // Directly use the token value without modification
         String tokenValue = token;
 
         PrintWriter writer = response.getWriter();

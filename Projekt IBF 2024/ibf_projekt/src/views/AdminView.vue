@@ -1,32 +1,20 @@
 <script setup lang="ts">
-import Footer from '@/components/Footer.vue';
-import Header from '@/components/Header.vue';
-import Admin from '@/components/Admin.vue';
+import Admin from "@/components/Admin.vue";
+import Footer from "@/components/Footer.vue";
+import Header from "@/components/Header.vue";
 </script>
 <template>
   <!-- Wrapper -->
   <div id="wrapper">
-
-<Header>
-
-</Header>
+    <Header> </Header>
 
     <!-- Main -->
-        <div id="main">
-            <Admin></Admin>
+    <div id="main">
+      <Admin></Admin>
+    </div>
 
-        </div>
-
-<Footer>
-
-</Footer>
-
-</div>
-
+    <Footer> </Footer>
+  </div>
 </template>
 
-
-
-<style>
-
-</style>
+<style></style>

@@ -5,59 +5,79 @@ import { onMounted, reactive, ref } from "vue";
 
 const auth = useAuthStore();
 const token = auth.token;
-const role = localStorage.getItem("authority")
+const userUsername = localStorage.getItem("user")
+  ? localStorage.getItem("user").slice(1, -1)
+  : null;
+const userRole = localStorage.getItem("authority")
   ? localStorage.getItem("authority")?.slice(1, -1)
   : null;
-console.log(role);
-const add = ref(true);
+const addNewMovieForm = ref(true);
 const movie = reactive({
   idmovie: null,
   title: "",
   genre: "",
   premieredate: "",
-  iduser: localStorage.getItem("id"),
-  iddirector: localStorage.getItem("id"),
-  iddir: ref(0),
+  username: "",
+  directorName: "",
+  iddir: null,
 });
+const directors = ref([]);
 const movies = ref([]);
 const error = ref<string | null>(null);
 const currentPage = ref(0);
-const PAGE_SIZE = ref(0);
-const PAGE_COUNT = ref(0);
+const SINGLE_PAGE_SIZE = ref(0);
+const CURRENT_PAGE_NUMBER = ref(0);
 let countRequested = false;
-const editing = ref(false);
-let idm = 0;
+const movieDataEditForm = ref(true);
+let movieId = 0;
+
+const fetchDirectors = async () => {
+  try {
+    const response = await axios.get("http://localhost:8080/directors/all", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    directors.value = response.data;
+  } catch (error) {}
+};
 
 const deleteMovie = async (id: number) => {
   if (confirm("Are you sure you want to delete this record?")) {
     try {
       await axios.delete(`http://localhost:8080/movies/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Ensure to include only the token without "Bearer"
+          Authorization: `Bearer ${token}`,
         },
       });
-      console.log("User deleted successfully");
-      window.location.reload(); // Refresh users after deletion
+      window.location.reload();
     } catch (error) {
-      console.error("Error deleting user:", error);
       handleError(error as AxiosError);
     }
   }
 };
-const addMovie = async (id: number) => {
+
+const addMovie = async () => {
   try {
     const response = await axios.post(
-      `http://localhost:8080/movies/${id}`,
-      movie,
+      `http://localhost:8080/movies`,
+      {
+        title: movie.title,
+        genre: movie.genre,
+        premieredate: movie.premieredate,
+        iddir: movie.iddir,
+        username: userUsername,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       }
     );
+
     if (response.status == 200) {
-      console.log("Movie added");
-      window.location.reload(); // Refresh users after deletion
+      window.location.reload();
     } else {
       throw new Error("Movie not added");
     }
@@ -66,37 +86,50 @@ const addMovie = async (id: number) => {
   }
 };
 
-const editMovie = async (idmovie: number) => {
-  editing.value = !editing.value;
-  console.log("ID filmu: ", idmovie);
-  idm = idmovie;
+const editMovie = async (movieToEdit: any) => {
+  if (directors.value.length === 0) {
+    await fetchDirectors();
+  }
+  movieDataEditForm.value = false;
+  movie.title = movieToEdit.title;
+  movie.genre = movieToEdit.genre;
+  movie.premieredate = movieToEdit.premieredate.split("T")[0];
+  movie.directorName = movieToEdit.directorName;
+  movie.iddir = movieToEdit.iddir;
+  movie.username = movieToEdit.username;
+  movieId = movieToEdit.idmovie;
 };
 
 const updateMovie = async () => {
-  editing.value = !editing.value;
   try {
+    console.log("REŻ:", movie.directorName);
     const response = await axios.put(
-      `http://localhost:8080/movies`,
+      `http://localhost:8080/movies/${movieId}`,
       {
-        premieredate: movie.premieredate,
-        idmovie: idm,
         title: movie.title,
         genre: movie.genre,
-        iddirector: 1,
+        premieredate: movie.premieredate,
+        iddir: movie.iddir,
+        username: userUsername,
       },
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       }
     );
-    console.log("Director updated successfully");
-    window.location.reload();
+
+    if (response.status == 200) {
+      window.location.reload();
+    } else {
+      throw new Error("Movie not updated");
+    }
   } catch (error) {
-    console.error("Error updating director:", error);
     handleError(error as AxiosError);
   }
 };
+
 const getMoviesCount = async () => {
   try {
     const response = await axios.get("http://localhost:8080/movies/count", {
@@ -105,9 +138,8 @@ const getMoviesCount = async () => {
       },
     });
 
-    PAGE_SIZE.value = response.data;
+    SINGLE_PAGE_SIZE.value = response.data;
     countRequested = true;
-    console.log("Rekordów w tabeli jest: ", PAGE_SIZE.value);
   } catch (error) {
     handleError(error as AxiosError);
   }
@@ -128,11 +160,9 @@ const getMovies = async (page: number = 0) => {
       },
     });
 
-    PAGE_COUNT.value = movies.value.length;
-    console.log("Rekordów na stronie jest: ", response.data.length);
+    CURRENT_PAGE_NUMBER.value = movies.value.length;
     movies.value = response.data;
     currentPage.value = page;
-    console.log("Aktualana strona: ", currentPage.value);
   } catch (error) {
     handleError(error as AxiosError);
   }
@@ -157,7 +187,10 @@ const handleError = (error: CustomAxiosError) => {
   }
 };
 const handleClick = () => {
-  add.value = !add;
+  addNewMovieForm.value = !addNewMovieForm;
+  if (!addNewMovieForm.value || movieDataEditForm.value) {
+    fetchDirectors();
+  }
 };
 
 onMounted(() => {
@@ -166,8 +199,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="editing">
-    <table v-if="add">
+  <div v-if="movieDataEditForm">
+    <table v-if="addNewMovieForm">
       <thead>
         <tr>
           <th>Movie ID</th>
@@ -175,7 +208,7 @@ onMounted(() => {
           <th>Genre</th>
           <th>Premiere Date</th>
           <th>Reżyser</th>
-          <th v-if="role == 'ADMIN'">Options</th>
+          <th v-if="userRole == 'ADMIN'">Options</th>
         </tr>
       </thead>
       <tbody>
@@ -186,8 +219,8 @@ onMounted(() => {
           <td>
             {{ new Date(movie.premieredate).toLocaleDateString("pl-PL") }}
           </td>
-          <td>{{ movie.directorDetails[0] }} {{ movie.directorDetails[1] }}</td>
-          <td v-if="role == 'ADMIN'">
+          <td>{{ movie.directorName }}</td>
+          <td v-if="userRole == 'ADMIN'">
             <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               @click="deleteMovie(movie.idmovie)"
@@ -196,10 +229,10 @@ onMounted(() => {
               Delete
             </button>
           </td>
-          <td v-if="role == 'ADMIN'">
+          <td v-if="userRole == 'ADMIN'">
             <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              @click="editMovie(movie.idmovie)"
+              @click="editMovie(movie)"
               type="button"
             >
               Edit
@@ -211,7 +244,7 @@ onMounted(() => {
     <div v-if="error" class="error-message">{{ error }}</div>
 
     <button
-      v-if="role == 'ADMIN'"
+      v-if="userRole == 'ADMIN'"
       @click="handleClick()"
       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       type="button"
@@ -219,7 +252,7 @@ onMounted(() => {
       Add
     </button>
 
-    <nav aria-label="Page navigation example">
+    <nav v-if="addNewMovieForm" aria-label="Page navigation example">
       <ul class="inline-flex -space-x-px text-sm">
         <li>
           <button
@@ -241,7 +274,9 @@ onMounted(() => {
         </li>
         <li>
           <button
-            :disabled="PAGE_SIZE - (currentPage + 1) * PAGE_COUNT < 1"
+            :disabled="
+              SINGLE_PAGE_SIZE - (currentPage + 1) * CURRENT_PAGE_NUMBER < 1
+            "
             @click.prevent="getMovies(currentPage + 1)"
             class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
@@ -253,12 +288,12 @@ onMounted(() => {
 
     <form
       class="bg-white p-8 rounded-md shadow-md"
-      @submit.prevent="addMovie(movie.iddir)"
-      v-if="!add"
+      @submit.prevent="addMovie()"
+      v-if="!addNewMovieForm"
     >
       <div class="mb-4">
         <label for="Title" class="block text-gray-700 text-sm font-bold mb-2"
-          >Tytuł</label
+          >Title</label
         >
         <input
           type="text"
@@ -268,24 +303,9 @@ onMounted(() => {
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
-      <div class="mb-4">
-        <label
-          for="id_director"
-          class="block text-gray-700 text-sm font-bold mb-2"
-          >id director</label
-        >
-        <input
-          type="number"
-          min="1"
-          id="id_director"
-          placeholder="1"
-          v-model="movie.iddir"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-        />
-      </div>
       <div class="mb-6">
         <label for="Genre" class="block text-gray-700 text-sm font-bold mb-2"
-          >Gatunek</label
+          >Genre</label
         >
         <input
           type="text"
@@ -297,9 +317,31 @@ onMounted(() => {
       </div>
       <div class="mb-6">
         <label
+          for="Director"
+          class="block text-gray-700 text-sm font-bold mb-2"
+        >
+          Director
+        </label>
+        <select
+          id="director"
+          v-model="movie.iddir"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="" disabled>Select a director</option>
+          <option
+            v-for="director in directors"
+            :key="director.iddirector"
+            :value="director.iddirector"
+          >
+            {{ director.name }} {{ director.surname }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-6">
+        <label
           for="Birthdate"
           class="block text-gray-700 text-sm font-bold mb-2"
-          >Data Premiery</label
+          >Premiere Date</label
         >
         <input
           type="date"
@@ -314,10 +356,10 @@ onMounted(() => {
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
         >
-          Dodaj Film
+          Add Movie
         </button>
         <button
-          @click="add = !add"
+          @click="addNewMovieForm = !addNewMovieForm"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="button"
         >
@@ -326,14 +368,15 @@ onMounted(() => {
       </div>
     </form>
   </div>
-  <div v-if="!editing">
+
+  <div v-if="!movieDataEditForm">
     <form
       class="bg-white p-8 rounded-md shadow-md"
       @submit.prevent="updateMovie"
     >
-      <div class="mb-4">
+      <div class="mt-8">
         <label for="Title" class="block text-gray-700 text-sm font-bold mb-2"
-          >Tytuł</label
+          >Title</label
         >
         <input
           type="text"
@@ -345,7 +388,7 @@ onMounted(() => {
       </div>
       <div class="mb-6">
         <label for="Genre" class="block text-gray-700 text-sm font-bold mb-2"
-          >Gatunek</label
+          >Genre</label
         >
         <input
           type="text"
@@ -357,9 +400,31 @@ onMounted(() => {
       </div>
       <div class="mb-6">
         <label
+          for="Director"
+          class="block text-gray-700 text-sm font-bold mb-2"
+        >
+          Director
+        </label>
+        <select
+          id="director"
+          v-model="movie.iddir"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+        >
+          <option value="" disabled>Select a director</option>
+          <option
+            v-for="director in directors"
+            :key="director.iddirector"
+            :value="director.iddirector"
+          >
+            {{ director.name }} {{ director.surname }}
+          </option>
+        </select>
+      </div>
+      <div class="mb-6">
+        <label
           for="Premierdate"
           class="block text-gray-700 text-sm font-bold mb-2"
-          >Data premiery</label
+          >Premiere Date</label
         >
         <input
           type="date"
@@ -374,14 +439,14 @@ onMounted(() => {
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
         >
-          Edytuj
+          Edit
         </button>
         <button
-          @click="editing = !editing"
+          @click="movieDataEditForm = !movieDataEditForm"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="button"
         >
-          Cofnij
+          Go Back
         </button>
       </div>
     </form>

@@ -10,13 +10,14 @@ import strona.demo.model.Users;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsersRepository extends JpaRepository<Users, Long> {
     @Query("SELECT DISTINCT u FROM Users u")
     List<Users> findAllUsers(PageRequest pageRequest);
 
-    Users findByUsername(String username);
+    Optional<Users> findByUsername(String username);
 
     @Modifying
     @Transactional

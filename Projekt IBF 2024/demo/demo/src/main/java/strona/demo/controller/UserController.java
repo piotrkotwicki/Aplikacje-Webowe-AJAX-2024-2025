@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-//@RequestMapping("/api")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 
@@ -32,8 +31,8 @@ public class UserController {
         int pageNumber = page != null && page >= 0 ? page : 0;
         return userService.getUsers(pageNumber);
     }
-    @GetMapping("/users/{id}")
-    public Users getUsersById(long iduser) {
+    @GetMapping("/users/{iduser}")
+    public Users getUsersById(@PathVariable long iduser) {
 
         return userService.getUsersById(iduser);
     }

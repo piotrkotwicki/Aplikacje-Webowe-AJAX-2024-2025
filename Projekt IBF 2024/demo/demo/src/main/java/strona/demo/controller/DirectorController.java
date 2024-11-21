@@ -13,17 +13,14 @@ import strona.demo.repository.UsersRepository;
 import strona.demo.service.DirectorService;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestController
-//@RequestMapping("/api")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
 public class DirectorController {
 
     private final DirectorService directorService;
     private final DirectorRepository directorRepository;
-    private final UsersRepository usersRepository;
     private final MovieRepository movieRepository;
 
     @GetMapping("directors/count")
@@ -37,8 +34,14 @@ public class DirectorController {
         return directorService.getDirectors(pageNumber);
     }
 
-    @GetMapping("/directors/{id}")
-    public Director getDirectorById(long iddirector) {
+    @GetMapping("/directors/all")
+    public ResponseEntity<List<Director>> getAllDirectors() {
+        List<Director> directors = directorService.getAllDirectors();
+        return ResponseEntity.ok(directors);
+    }
+
+    @GetMapping("/directors/{iddirector}")
+    public Director getDirectorById(@PathVariable long iddirector) {
 
         return directorService.getDirectorById(iddirector);
     }

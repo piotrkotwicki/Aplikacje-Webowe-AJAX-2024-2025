@@ -1,13 +1,11 @@
 package strona.demo.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.*;
 
-@Getter
-@Setter
 @Entity
+@Data
 public class Authorities {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

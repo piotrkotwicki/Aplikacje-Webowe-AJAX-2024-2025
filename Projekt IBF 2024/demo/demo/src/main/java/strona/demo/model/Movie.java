@@ -1,20 +1,15 @@
 package strona.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "movie")
 public class Movie {
     @Id
@@ -23,11 +18,14 @@ public class Movie {
     private String title;
     private String genre;
     private Date premieredate;
-//    private long iduser;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "iduser", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
+    private Users user;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "iddirector", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Director director;
-
 }

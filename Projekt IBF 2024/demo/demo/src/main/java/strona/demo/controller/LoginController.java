@@ -3,9 +3,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import strona.demo.config.LoginCredentials;
 import strona.demo.model.Authorities;
-import strona.demo.model.Users;
 import strona.demo.service.AuthoritiesService;
-import strona.demo.service.UserService;
 
 import java.util.List;
 
@@ -13,7 +11,6 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class LoginController {
-private final UserService usersService;
 private final AuthoritiesService authoritiesService;
 
     @PostMapping("/login")
