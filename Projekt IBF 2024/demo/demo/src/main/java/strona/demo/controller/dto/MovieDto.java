@@ -12,4 +12,5 @@ public class MovieDto {
     private Date premieredate;
     private String username;
     private String directorName;
+    private String posterLocation;
 }

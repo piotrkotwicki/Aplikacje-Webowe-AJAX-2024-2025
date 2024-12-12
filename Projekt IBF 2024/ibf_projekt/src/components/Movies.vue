@@ -19,11 +19,13 @@ const movie = reactive({
   premieredate: "",
   username: "",
   directorName: "",
+  posterLocation: "",
   iddir: null,
 });
 const directors = ref([]);
 const movies = ref([]);
 const error = ref<string | null>(null);
+const errorPresent = ref(false);
 const currentPage = ref(0);
 const SINGLE_PAGE_SIZE = ref(0);
 const CURRENT_PAGE_NUMBER = ref(0);
@@ -65,6 +67,7 @@ const addMovie = async () => {
         title: movie.title,
         genre: movie.genre,
         premieredate: movie.premieredate,
+        posterLocation: movie.posterLocation,
         iddir: movie.iddir,
         username: userUsername,
       },
@@ -87,6 +90,7 @@ const addMovie = async () => {
 };
 
 const editMovie = async (movieToEdit: any) => {
+  errorPresent.value = false;
   if (directors.value.length === 0) {
     await fetchDirectors();
   }
@@ -173,24 +177,63 @@ interface CustomAxiosError extends AxiosError {
 }
 
 const handleError = (error: CustomAxiosError) => {
+  errorPresent.value = true;
+
   if (
     error.response &&
     error.response.data &&
     typeof error.response.data === "object"
   ) {
     const responseData: any = error.response.data;
-    error.value = "Failed to fetch meals: " + responseData.message;
+    error.value = "Failed to fetch movies: " + responseData.message;
   } else if (error.request) {
     error.value = "No response from server";
   } else {
     error.value = "Error making request: " + error.message;
   }
+
+  error.value ? (errorPresent.value = true) : (errorPresent.value = false);
 };
 const handleClick = () => {
+  errorPresent.value = false;
   addNewMovieForm.value = !addNewMovieForm;
   if (!addNewMovieForm.value || movieDataEditForm.value) {
     fetchDirectors();
   }
+};
+
+const updatePoster = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "posters");
+      formData.append("folder", "movies_posters");
+
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dhmdv4ouw/image/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const cloudinaryUrl = response.data.secure_url;
+
+      movie.posterLocation = cloudinaryUrl;
+      console.log("Image uploaded successfully:", cloudinaryUrl);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    }
+  }
+};
+
+const booleanManager = () => {
+  addNewMovieForm.value = true;
+  errorPresent.value = false;
 };
 
 onMounted(() => {
@@ -203,17 +246,26 @@ onMounted(() => {
     <table v-if="addNewMovieForm">
       <thead>
         <tr>
-          <th>Movie ID</th>
-          <th>Title</th>
-          <th>Genre</th>
-          <th>Premiere Date</th>
+          <th>ID filmu</th>
+          <th>Plakat</th>
+          <th>Tytuł</th>
+          <th>Gatunek</th>
+          <th>Data Premiery</th>
           <th>Reżyser</th>
-          <th v-if="userRole == 'ADMIN'">Options</th>
+          <th v-if="userRole == 'ADMIN'">Opcje</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="movie in movies" :key="movie.idmovie">
           <td>{{ movie.idmovie }}</td>
+          <td>
+            <img
+              :src="movie.posterLocation"
+              alt="Movie Poster"
+              v-if="movie.posterLocation"
+            />
+            <p v-else>Plakat niedostępny</p>
+          </td>
           <td>{{ movie.title }}</td>
           <td>{{ movie.genre }}</td>
           <td>
@@ -226,7 +278,7 @@ onMounted(() => {
               @click="deleteMovie(movie.idmovie)"
               type="button"
             >
-              Delete
+              Usuń
             </button>
           </td>
           <td v-if="userRole == 'ADMIN'">
@@ -235,7 +287,7 @@ onMounted(() => {
               @click="editMovie(movie)"
               type="button"
             >
-              Edit
+              Edytuj
             </button>
           </td>
         </tr>
@@ -249,7 +301,7 @@ onMounted(() => {
       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       type="button"
     >
-      Add
+      Dodaj film
     </button>
 
     <nav v-if="addNewMovieForm" aria-label="Page navigation example">
@@ -257,11 +309,12 @@ onMounted(() => {
         <li>
           <button
             @click.prevent="getMovies(currentPage - 1)"
+            @click="errorPresent = false"
             :disabled="currentPage == 0"
             href="#"
             class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Previous
+            Wstecz
           </button>
         </li>
         <li>
@@ -278,9 +331,10 @@ onMounted(() => {
               SINGLE_PAGE_SIZE - (currentPage + 1) * CURRENT_PAGE_NUMBER < 1
             "
             @click.prevent="getMovies(currentPage + 1)"
+            @click="errorPresent = false"
             class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Next
+            Dalej
           </button>
         </li>
       </ul>
@@ -293,7 +347,7 @@ onMounted(() => {
     >
       <div class="mb-4">
         <label for="Title" class="block text-gray-700 text-sm font-bold mb-2"
-          >Title</label
+          >Tytuł</label
         >
         <input
           type="text"
@@ -305,7 +359,7 @@ onMounted(() => {
       </div>
       <div class="mb-6">
         <label for="Genre" class="block text-gray-700 text-sm font-bold mb-2"
-          >Genre</label
+          >Gatunek</label
         >
         <input
           type="text"
@@ -320,14 +374,14 @@ onMounted(() => {
           for="Director"
           class="block text-gray-700 text-sm font-bold mb-2"
         >
-          Director
+          Reżyser
         </label>
         <select
           id="director"
           v-model="movie.iddir"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
         >
-          <option value="" disabled>Select a director</option>
+          <option value="" disabled>Wybierz reżysera</option>
           <option
             v-for="director in directors"
             :key="director.iddirector"
@@ -341,7 +395,7 @@ onMounted(() => {
         <label
           for="Birthdate"
           class="block text-gray-700 text-sm font-bold mb-2"
-          >Premiere Date</label
+          >Data Premiery</label
         >
         <input
           type="date"
@@ -351,15 +405,27 @@ onMounted(() => {
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
+      <div class="mb-6">
+        <label for="poster" class="block text-gray-700 text-sm font-bold mb-2"
+          >Plakat</label
+        >
+        <input
+          type="file"
+          id="poster"
+          placeholder="Plakat"
+          @change="updatePoster($event)"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+        />
+      </div>
       <div class="flex items">
         <button
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
         >
-          Add Movie
+          Dodaj film
         </button>
         <button
-          @click="addNewMovieForm = !addNewMovieForm"
+          @click="booleanManager"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="button"
         >
@@ -376,7 +442,7 @@ onMounted(() => {
     >
       <div class="mt-8">
         <label for="Title" class="block text-gray-700 text-sm font-bold mb-2"
-          >Title</label
+          >Tytuł</label
         >
         <input
           type="text"
@@ -388,7 +454,7 @@ onMounted(() => {
       </div>
       <div class="mb-6">
         <label for="Genre" class="block text-gray-700 text-sm font-bold mb-2"
-          >Genre</label
+          >Gatunek</label
         >
         <input
           type="text"
@@ -403,14 +469,14 @@ onMounted(() => {
           for="Director"
           class="block text-gray-700 text-sm font-bold mb-2"
         >
-          Director
+          Reżyser
         </label>
         <select
           id="director"
           v-model="movie.iddir"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
         >
-          <option value="" disabled>Select a director</option>
+          <option value="" disabled>Wybierz reżysera</option>
           <option
             v-for="director in directors"
             :key="director.iddirector"
@@ -424,7 +490,7 @@ onMounted(() => {
         <label
           for="Premierdate"
           class="block text-gray-700 text-sm font-bold mb-2"
-          >Premiere Date</label
+          >Data premiery</label
         >
         <input
           type="date"
@@ -439,17 +505,39 @@ onMounted(() => {
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="submit"
         >
-          Edit
+          Edytuj
         </button>
         <button
           @click="movieDataEditForm = !movieDataEditForm"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="button"
         >
-          Go Back
+          Cofnij
         </button>
       </div>
     </form>
+  </div>
+
+  <div
+    class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
+    role="alert"
+    v-if="errorPresent"
+  >
+    <svg
+      class="flex-shrink-0 inline w-4 h-4 me-3"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path
+        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
+      />
+    </svg>
+    <span class="sr-only">Info</span>
+    <div>
+      <span class="font-medium">{{ "Błąd" }}</span>
+    </div>
   </div>
 </template>
 

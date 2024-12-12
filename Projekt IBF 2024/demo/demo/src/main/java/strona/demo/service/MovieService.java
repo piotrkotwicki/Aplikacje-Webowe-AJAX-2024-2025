@@ -39,6 +39,7 @@ public class MovieService {
                     dto.setTitle(movie.getTitle());
                     dto.setGenre(movie.getGenre());
                     dto.setPremieredate(movie.getPremieredate());
+                    dto.setPosterLocation(movie.getPosterLocation());
                     dto.setUsername(movie.getUser().getUsername());
                     dto.setDirectorName(movie.getDirector().getName() + " " + movie.getDirector().getSurname());
                     return dto;
@@ -53,7 +54,7 @@ public class MovieService {
         return new ResponseEntity<>(movie, HttpStatus.OK).getBody();
     }
 
-    public MovieDto createMovie(String title, String genre, Date premieredate, Long iddir, String username) {
+    public MovieDto createMovie(String title, String genre, Date premieredate, String posterLocation, Long iddir, String username) {
         Director director = directorRepository.findById(iddir)
                 .orElseThrow(() -> new RuntimeException("Director not found with ID: " + iddir));
 
@@ -64,6 +65,7 @@ public class MovieService {
         movie.setTitle(title);
         movie.setGenre(genre);
         movie.setPremieredate(premieredate);
+        movie.setPosterLocation(posterLocation);
         movie.setDirector(director);
         movie.setUser(user);
 
@@ -78,6 +80,7 @@ public class MovieService {
         dto.setTitle(movie.getTitle());
         dto.setGenre(movie.getGenre());
         dto.setPremieredate(movie.getPremieredate());
+        dto.setPosterLocation(movie.getPosterLocation());
         dto.setUsername(movie.getUser().getUsername());
         dto.setDirectorName(movie.getDirector().getName() + " " + movie.getDirector().getSurname());
         return dto;

@@ -18,6 +18,8 @@ public class Movie {
     private String title;
     private String genre;
     private Date premieredate;
+    @Column(name = "poster_location")
+    private String posterLocation;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "iduser", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

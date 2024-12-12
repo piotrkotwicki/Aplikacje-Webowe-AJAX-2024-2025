@@ -50,6 +50,7 @@ public class MovieController {
                 (String) movieData.get("title"),
                 (String) movieData.get("genre"),
                 Date.valueOf((String) movieData.get("premieredate")),
+                (String) movieData.get("posterLocation"),
                 iddir,
                 username
         );

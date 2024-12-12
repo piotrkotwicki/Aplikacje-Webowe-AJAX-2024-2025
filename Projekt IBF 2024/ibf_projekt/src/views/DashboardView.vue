@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Footer from "@/components/Footer.vue";
 import Header from "@/components/Header.vue";
+import Dashboard from "@/components/Dashboard.vue";
 </script>
 
 <template>
@@ -17,8 +18,8 @@ import Header from "@/components/Header.vue";
             <header class="major">
               <h2>O stronie</h2>
             </header>
-            <p
-              >Internetowa Baza Filmów to wirtualne sanktuarium dla miłośników
+            <p>
+              Internetowa Baza Filmów to wirtualne sanktuarium dla miłośników
               kina z całego świata. Ta dynamiczna platforma gromadzi nie tylko
               najnowsze premiery, ale również klasyczne dzieła filmowe, tworząc
               bogatą kolekcję, która zaspokoi gusta każdego kinomana. Na stronie
@@ -29,12 +30,12 @@ import Header from "@/components/Header.vue";
               regularnie aktualizowanej zawartości użytkownicy zawsze będą na
               bieżąco z najnowszymi filmami. Internetowa Baza Filmów to nie
               tylko strona internetowa, to miejsce, które inspiruje do
-              odkrywania nowych filmowych ścieżek.</p
-            >
+              odkrywania nowych filmowych ścieżek.
+            </p>
           </div>
-          <span class="image"
-            ><img src="./images/kolarz_filmy.jpg" alt=""
-          /></span>
+          <span class="image">
+            <Dashboard></Dashboard>
+          </span>
         </div>
       </section>
 

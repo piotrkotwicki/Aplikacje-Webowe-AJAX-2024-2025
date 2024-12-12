@@ -17,12 +17,13 @@ const directorData = reactive({
 });
 const directors = ref([]);
 const error = ref<string | null>(null);
+const errorPresent = ref(false);
 const currentPage = ref(0);
 const SINGLE_PAGE_SIZE = ref(0);
 const CURRENT_PAGE_NUMBER = ref(0);
 let tableCountRequested = false;
 const directorDataEditForm = ref(true);
-let iddirector = 0;
+let idOfDirector = null;
 
 const deleteDirector = async (id: number) => {
   if (confirm("Are you sure you want to delete this record?")) {
@@ -100,8 +101,9 @@ const getDirectors = async (page: number = 0) => {
 };
 
 const enableEditOfDirector = async (iddirector: number) => {
+  errorPresent.value = false;
   directorDataEditForm.value = !directorDataEditForm.value;
-  iddirector = iddirector;
+  idOfDirector = iddirector;
 };
 
 const updateDirector = async () => {
@@ -111,7 +113,7 @@ const updateDirector = async () => {
       `http://localhost:8080/directors`,
       {
         birthdate: directorData.birthdate,
-        iddirector: iddirector,
+        iddirector: idOfDirector,
         name: directorData.name,
         surname: directorData.surname,
       },
@@ -132,22 +134,32 @@ interface CustomAxiosError extends AxiosError {
 }
 
 const handleError = (error: CustomAxiosError) => {
+  errorPresent.value = true;
+
   if (
     error.response &&
     error.response.data &&
     typeof error.response.data === "object"
   ) {
     const responseData: any = error.response.data;
-    error.value = "Failed to fetch directors: " + responseData.message;
+    error.value = responseData.message || "An error occurred";
   } else if (error.request) {
     error.value = "No response from server";
   } else {
     error.value = "Error making request: " + error.message;
   }
+
+  error.value ? (errorPresent.value = true) : (errorPresent.value = false);
 };
 
 const handleClick = () => {
+  errorPresent.value = false;
   addNewDirectorForm.value = !addNewDirectorForm;
+};
+
+const booleanManager = () => {
+  directorDataEditForm.value = true;
+  errorPresent.value = false;
 };
 
 onMounted(() => {
@@ -160,11 +172,11 @@ onMounted(() => {
     <table v-if="addNewDirectorForm">
       <thead>
         <tr>
-          <th>Director ID</th>
-          <th>Name</th>
-          <th>Surname</th>
-          <th>Birthdate</th>
-          <th v-if="userRole == 'ADMIN'">Options</th>
+          <th>ID reżysera</th>
+          <th>Imię</th>
+          <th>Nazwisko</th>
+          <th>Data Urodzenia</th>
+          <th v-if="userRole == 'ADMIN'">Opcje</th>
         </tr>
       </thead>
       <tbody>
@@ -172,27 +184,27 @@ onMounted(() => {
           <td>{{ directorData.iddirector }}</td>
           <td>{{ directorData.name }}</td>
           <td>{{ directorData.surname }}</td>
-          <td>{{
-            new Date(directorData.birthdate).toLocaleDateString("pl-PL")
-          }}</td>
-          <td v-if="userRole == 'ADMIN'"
-            ><button
+          <td>
+            {{ new Date(directorData.birthdate).toLocaleDateString("pl-PL") }}
+          </td>
+          <td v-if="userRole == 'ADMIN'">
+            <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               @click="deleteDirector(directorData.iddirector)"
               type="button"
             >
-              Delete
-            </button></td
-          >
-          <td v-if="userRole == 'ADMIN'"
-            ><button
+              Usuń
+            </button>
+          </td>
+          <td v-if="userRole == 'ADMIN'">
+            <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               @click="enableEditOfDirector(directorData.iddirector)"
               type="button"
             >
-              Edit
-            </button></td
-          >
+              Edytuj
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -204,7 +216,7 @@ onMounted(() => {
       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       type="button"
     >
-      Add
+      Dodaj Reżysera
     </button>
 
     <nav v-if="addNewDirectorForm" aria-label="Page navigation example">
@@ -212,11 +224,12 @@ onMounted(() => {
         <li>
           <button
             @click.prevent="getDirectors(currentPage - 1)"
+            @click="errorPresent = false"
             :disabled="currentPage == 0"
             href="#"
             class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Previous
+            Wstecz
           </button>
         </li>
         <li>
@@ -233,9 +246,10 @@ onMounted(() => {
               SINGLE_PAGE_SIZE - (currentPage + 1) * CURRENT_PAGE_NUMBER < 1
             "
             @click.prevent="getDirectors(currentPage + 1)"
+            @click="errorPresent = false"
             class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Next
+            Dalej
           </button>
         </li>
       </ul>
@@ -248,7 +262,7 @@ onMounted(() => {
     >
       <div class="mb-4">
         <label for="Name" class="block text-gray-700 text-sm font-bold mb-2"
-          >Imie</label
+          >Imię</label
         >
         <input
           type="text"
@@ -303,12 +317,12 @@ onMounted(() => {
   </div>
   <div v-if="!directorDataEditForm">
     <form
-      class="bg-white p-8 rounded-md shadow-md"
+      class="bg-white p-8 rounded-md shadow-md mt-4"
       @submit.prevent="updateDirector"
     >
-      <div class="mb-4">
+      <div class="mb-4 pt-4">
         <label for="Name" class="block text-gray-700 text-sm font-bold mb-2"
-          >Imie</label
+          >Imię</label
         >
         <input
           type="text"
@@ -352,7 +366,7 @@ onMounted(() => {
           Edytuj
         </button>
         <button
-          @click="directorDataEditForm = !directorDataEditForm"
+          @click="booleanManager"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
           type="button"
         >
@@ -360,5 +374,26 @@ onMounted(() => {
         </button>
       </div>
     </form>
+  </div>
+  <div
+    class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
+    role="alert"
+    v-if="errorPresent"
+  >
+    <svg
+      class="flex-shrink-0 inline w-4 h-4 me-3"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path
+        d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"
+      />
+    </svg>
+    <span class="sr-only">Info</span>
+    <div>
+      <span class="font-medium">{{ "Błąd" }}</span>
+    </div>
   </div>
 </template>

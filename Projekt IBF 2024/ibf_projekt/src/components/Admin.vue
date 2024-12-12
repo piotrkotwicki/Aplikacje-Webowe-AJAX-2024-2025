@@ -143,24 +143,24 @@ onMounted(() => {
           <td>{{ user.user.id }}</td>
           <td>{{ user.user.username }}</td>
           <td>{{ user.authority }}</td>
-          <td
-            ><button
+          <td>
+            <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               @click="deleteUser(user.user.id)"
               type="button"
             >
-              Delete
-            </button></td
-          >
-          <td
-            ><button
+              Usuń
+            </button>
+          </td>
+          <td>
+            <button
               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               @click="editUser(user.user.id)"
               type="button"
             >
-              Edit
-            </button></td
-          >
+              Edytuj
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -175,7 +175,7 @@ onMounted(() => {
             href="#"
             class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Previous
+            Wstecz
           </button>
         </li>
         <li>
@@ -194,7 +194,7 @@ onMounted(() => {
             @click.prevent="getUsers(currentPage + 1)"
             class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 rounded-e-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
           >
-            Next
+            Dalej
           </button>
         </li>
       </ul>
@@ -208,7 +208,7 @@ onMounted(() => {
   >
     <div class="mb-4">
       <label for="username" class="block text-gray-700 text-sm font-bold mb-2"
-        >New Username</label
+        >Nazwa Użytkownika</label
       >
       <input
         type="text"
@@ -224,14 +224,14 @@ onMounted(() => {
         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         type="submit"
       >
-        Edit
+        Edytuj
       </button>
       <button
         @click="goBack()"
         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
         type="button"
       >
-        Go Back
+        Cofnij
       </button>
     </div>
   </form>
