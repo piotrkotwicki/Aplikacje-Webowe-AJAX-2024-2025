@@ -158,6 +158,7 @@ const getMovies = async (page: number = 0) => {
     const response = await axios.get("http://localhost:8080/movies", {
       params: {
         page: page,
+        size: 3,
       },
       headers: {
         Authorization: `Bearer ${token}`,

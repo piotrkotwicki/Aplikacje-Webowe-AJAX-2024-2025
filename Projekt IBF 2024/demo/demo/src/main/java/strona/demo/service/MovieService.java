@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class MovieService {
-    private static final int PAGE_ELEMENTS = 3;
     private final MovieRepository movieRepository;
     private final DirectorRepository  directorRepository;
     private final UsersRepository userRepository;
@@ -29,9 +28,9 @@ public class MovieService {
     public Long countMovies() {
         return movieRepository.count();
     }
-    public List<MovieDto> getMovies(int page) {
+    public List<MovieDto> getMovies(int page, int size) {
         return movieRepository.findAll(
-                        PageRequest.of(page, PAGE_ELEMENTS)
+                        PageRequest.of(page, size)
                 ).stream()
                 .map(movie -> {
                     MovieDto dto = new MovieDto();

@@ -30,9 +30,9 @@ public class MovieController {
     }
 
     @GetMapping("/movies")
-    public List<MovieDto> getMovies(@RequestParam(required = false) Integer page) {
+    public List<MovieDto> getMovies(@RequestParam(required = false) Integer page, @RequestParam Integer size) {
         int pageNumber = page != null && page >= 0 ? page : 0;
-        return movieService.getMovies(pageNumber);
+        return movieService.getMovies(pageNumber, size);
     }
 
     @GetMapping("/movies/{idmovie}")
