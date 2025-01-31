@@ -42,10 +42,8 @@ public class RestAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuc
                 .sign(Algorithm.HMAC256(secret));
         response.setContentType("application/json");
 
-        String tokenValue = token;
-
         PrintWriter writer = response.getWriter();
-        writer.print("Bearer " + tokenValue);
+        writer.print("Bearer " + token);
         writer.flush();
 
         response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");

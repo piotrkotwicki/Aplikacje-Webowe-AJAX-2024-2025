@@ -140,7 +140,7 @@ onMounted(() => {
       </thead>
       <tbody>
         <tr v-for="user in usersData" :key="user.user.id">
-          <td>{{ user.user.id }}</td>
+          <td>{{ user.id }}</td>
           <td>{{ user.user.username }}</td>
           <td>{{ user.authority }}</td>
           <td>

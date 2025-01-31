@@ -33,7 +33,7 @@ import Dashboard from "@/components/Dashboard.vue";
               odkrywania nowych filmowych ścieżek.
             </p>
           </div>
-          <span class="image">
+          <span class="image max-w-[50%]">
             <Dashboard></Dashboard>
           </span>
         </div>

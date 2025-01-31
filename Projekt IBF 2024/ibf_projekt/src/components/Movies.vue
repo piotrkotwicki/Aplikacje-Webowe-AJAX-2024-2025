@@ -61,8 +61,35 @@ const deleteMovie = async (id: number) => {
 
 const addMovie = async () => {
   try {
+    // First, handle the file upload
+    const file = document.querySelector("#poster") as HTMLInputElement;
+    if (file.files && file.files.length > 0) {
+      const fileToUpload = file.files[0];
+
+      // Upload the file to Cloudinary
+      const formData = new FormData();
+      formData.append("file", fileToUpload);
+      formData.append("upload_preset", "posters"); // Replace with your actual upload preset
+      formData.append("folder", "movies_posters");
+
+      const cloudinaryResponse = await axios.post(
+        "https://api.cloudinary.com/v1_1/dhmdv4ouw/image/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      const cloudinaryUrl = cloudinaryResponse.data.secure_url;
+      movie.posterLocation = cloudinaryUrl;
+      console.log("Image uploaded successfully:", cloudinaryUrl);
+    }
+
+    // Now submit the movie data with the poster URL
     const response = await axios.post(
-      `http://localhost:8080/movies`,
+      "http://localhost:8080/movies",
       {
         title: movie.title,
         genre: movie.genre,
@@ -203,35 +230,6 @@ const handleClick = () => {
   }
 };
 
-const updatePoster = async (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "posters");
-      formData.append("folder", "movies_posters");
-
-      const response = await axios.post(
-        "https://api.cloudinary.com/v1_1/dhmdv4ouw/image/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      const cloudinaryUrl = response.data.secure_url;
-
-      movie.posterLocation = cloudinaryUrl;
-      console.log("Image uploaded successfully:", cloudinaryUrl);
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    }
-  }
-};
-
 const booleanManager = () => {
   addNewMovieForm.value = true;
   errorPresent.value = false;
@@ -260,12 +258,17 @@ onMounted(() => {
         <tr v-for="movie in movies" :key="movie.idmovie">
           <td>{{ movie.idmovie }}</td>
           <td>
-            <img
-              :src="movie.posterLocation"
-              alt="Movie Poster"
-              v-if="movie.posterLocation"
-            />
-            <p v-else>Plakat niedostępny</p>
+            <div
+              class="w-48 h-auto md:h-64 overflow-hidden rounded-lg shadow-md min-w-[200px] min-h-[300px] max-w-[200px] max-h-[300px]"
+            >
+              <img
+                v-if="movie.posterLocation"
+                :src="movie.posterLocation"
+                alt="Movie Poster"
+                class="object-cover w-full h-full"
+              />
+              <p v-else>Plakat niedostępny</p>
+            </div>
           </td>
           <td>{{ movie.title }}</td>
           <td>{{ movie.genre }}</td>
@@ -294,6 +297,7 @@ onMounted(() => {
         </tr>
       </tbody>
     </table>
+
     <div v-if="error" class="error-message">{{ error }}</div>
 
     <button
@@ -413,8 +417,6 @@ onMounted(() => {
         <input
           type="file"
           id="poster"
-          placeholder="Plakat"
-          @change="updatePoster($event)"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>

@@ -52,32 +52,24 @@ onMounted(() => {
 
 <template>
   <div class="movies-container">
-    <div v-for="movie in movies.slice(0, 9)" :key="movie.idmovie">
-      <img
-        class="object-contain max-w-full max-h-48"
-        :src="`${movie.posterLocation}`"
-        loading="lazy"
-      />
+    <div class="grid grid-cols-3 gap-0">
+      <div
+        v-for="movie in movies.slice(0, 9)"
+        :key="movie.idmovie"
+        class="movie-item mx-auto"
+      >
+        <img
+          class="w-full h-auto object-contain"
+          :src="`${movie.posterLocation}`"
+          loading="lazy"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .movies-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: 640px; /* Fixed width */
-  height: 640px; /* Fixed height */
-  margin: 0 auto; /* Center the container */
-}
-
-.movie-item {
-  text-align: center;
-}
-
-.movie-poster {
-  width: 100%;
-  height: auto;
+  @apply w-full max-w-screen-lg mx-auto;
 }
 </style>
